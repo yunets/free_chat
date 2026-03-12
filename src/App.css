@@ -273,7 +273,7 @@ html, body, #root {
 
 .settings-panel {
   padding: 32px;
-  max-width: 1000px;
+  width: 100%;
   margin: 0 auto;
   float:left;
 }
@@ -489,7 +489,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 80%;
+  width: 100%;
 }
 
 .config-input {
