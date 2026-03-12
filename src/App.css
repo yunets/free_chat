@@ -531,3 +531,123 @@ html, body, #root {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-right: 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background: #3a3a3a;
+}
+
+.sidebar-title {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-title h2 {
+  margin-bottom: 0;
+}
+
+.sidebar.hidden {
+  width: 50px;
+}
+
+.sidebar.hidden .sidebar-header {
+  padding: 16px 8px;
+}
+
+.sidebar.hidden .sidebar-title {
+  justify-content: center;
+}
+
+.sidebar.hidden .sidebar-title h2 {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.hidden {
+    transform: translateX(-160px);
+    width: 40px;
+  }
+
+  .sidebar.hidden .sidebar-title {
+    justify-content: center;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .chat-messages {
+    padding: 12px;
+  }
+
+  .message {
+    max-width: 95%;
+  }
+
+  .input-area {
+    padding: 12px;
+    flex-direction: column;
+  }
+
+  .input-area textarea {
+    min-height: 60px;
+  }
+
+  .input-area button {
+    width: 100%;
+  }
+
+  .settings-panel {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .config-actions {
+    flex-wrap: wrap;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 101;
+    background: #007bff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+}

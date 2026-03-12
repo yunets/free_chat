@@ -185,6 +185,7 @@ function App() {
     return localStorage.getItem(STORAGE_KEYS.DEFAULT_CONFIG_ID) || ''
   })
   const [showSettings, setShowSettings] = useState(false)
+  const [sidebarHidden, setSidebarHidden] = useState(false)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -419,34 +420,48 @@ function App() {
 
   return (
     <div className="app">
-      <div className="sidebar">
+      <button className="mobile-menu-btn" onClick={() => setSidebarHidden(!sidebarHidden)}>
+        {sidebarHidden ? '☰' : '←'}
+      </button>
+      <div className={`sidebar ${sidebarHidden ? 'hidden' : ''}`}>
         <div className="sidebar-header">
-          <h2>Free Chat</h2>
-          <button className="new-chat-btn" onClick={createNewSession}>+ 新对话</button>
-        </div>
-        <div className="session-list">
-          {sessions.map(session => (
-            <div 
-              key={session.id} 
-              className={`session-item ${session.id === currentSessionId ? 'active' : ''}`}
-              onClick={() => selectSession(session.id)}
-            >
-              <span className="session-title">{session.title}</span>
-              <button 
-                className="delete-btn" 
-                onClick={(e) => deleteSession(session.id, e)}
-              >×</button>
-            </div>
-          ))}
-        </div>
-        <div className="sidebar-footer">
-          <div className="current-config">
-            {defaultConfig?.name || '默认配置'}
+          <div className="sidebar-title">
+            <button className="sidebar-toggle" onClick={() => setSidebarHidden(!sidebarHidden)}>
+              {sidebarHidden ? '☰' : '←'}
+            </button>
+            <h2>Free Chat</h2>
           </div>
-          <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>
-            ⚙️ 设置
-          </button>
+          {!sidebarHidden && (
+            <button className="new-chat-btn" onClick={createNewSession}>+ 新对话</button>
+          )}
         </div>
+        {!sidebarHidden && (
+          <>
+            <div className="session-list">
+              {sessions.map(session => (
+                <div 
+                  key={session.id} 
+                  className={`session-item ${session.id === currentSessionId ? 'active' : ''}`}
+                  onClick={() => selectSession(session.id)}
+                >
+                  <span className="session-title">{session.title}</span>
+                  <button 
+                    className="delete-btn" 
+                    onClick={(e) => deleteSession(session.id, e)}
+                  >×</button>
+                </div>
+              ))}
+            </div>
+            <div className="sidebar-footer">
+              <div className="current-config">
+                {defaultConfig?.name || '默认配置'}
+              </div>
+              <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>
+                ⚙️ 设置
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="main-content">
