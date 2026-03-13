@@ -45,13 +45,14 @@ npm run build
 
 应用支持配置多个 API 端点，包括：
 
-- API URL: 如 `https://api.openai.com/v1/chat/completions`
+- API URL: 如 `https://openrouter.ai/api/v1/chat/completions`（默认）
 - API Key: 你的 API 密钥
 - 模型名称: 如 `gpt-3.5-turbo`、`gpt-4` 等
 
 ### 支持的 API
 
 - OpenAI API
+- OpenRouter API（默认）
 - Azure OpenAI Service
 - Anthropic Claude
 - 其他兼容 OpenAI 格式的 API

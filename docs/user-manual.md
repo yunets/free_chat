@@ -117,11 +117,18 @@ npm run dev
 | 字段 | 说明 | 示例 |
 |------|------|------|
 | 配置名称 | 标识配置的名字 | OpenAI、Claude |
-| API URL | API 端点地址 | `https://api.openai.com/v1/chat/completions` |
+| API URL | API 端点地址（默认: `https://openrouter.ai/api/v1/chat/completions`） | `https://openrouter.ai/api/v1/chat/completions` |
 | API Key | 访问密钥 | `sk-xxxxxxxx` |
 | 模型 | 使用的模型 | `gpt-3.5-turbo`、`gpt-4` |
 
 ### 常用 API 配置
+
+#### OpenRouter（默认）
+
+```
+API URL: https://openrouter.ai/api/v1/chat/completions
+模型: gpt-3.5-turbo 或 gpt-4
+```
 
 #### OpenAI
 

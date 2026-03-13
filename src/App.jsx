@@ -13,7 +13,7 @@ function createEmptyConfig() {
   return {
     id: Date.now().toString(),
     name: '',
-    url: '',
+    url: 'https://openrouter.ai/api/v1/chat/completions',
     key: '',
     model: 'gpt-3.5-turbo'
   }
@@ -144,7 +144,7 @@ function SettingsPanel({ configs, defaultConfigId, onAdd, onUpdate, onDelete, on
                 type="text"
                 value={config.url}
                 onChange={(e) => handleUpdate(config.id, 'url', e.target.value)}
-                placeholder="API URL: https://api.openai.com/v1/chat/completions"
+                placeholder="API URL: https://openrouter.ai/api/v1/chat/completions"
                 className="config-input"
               />
               <input
@@ -451,6 +451,9 @@ function App() {
                   >×</button>
                 </div>
               ))}
+            </div>
+            <div className="sidebar-qrcode">
+              <img src="https://img.shetu66.com/2023/05/15/1684145537979686.png" alt="扫码关注" />
             </div>
             <div className="sidebar-footer">
               <div className="current-config">
