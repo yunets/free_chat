@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import './App.css'
 
 const STORAGE_KEYS = {
@@ -63,14 +64,60 @@ function CopyButton({ content, isMarkdown }) {
   )
 }
 
+function ThinkBlock({ content }) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div className="think-block">
+      <button className="think-toggle" onClick={() => setExpanded(!expanded)}>
+        <span className="think-icon">{expanded ? '▼' : '▶'}</span>
+        思考过程
+      </button>
+      {expanded && (
+        <div className="think-content">
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{content}</ReactMarkdown>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function parseThinkContent(content) {
+  const thinkRegex = /<think>([\s\S]*?)<\/think>/g
+  const parts = []
+  let lastIndex = 0
+  let match
+
+  while ((match = thinkRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', content: content.slice(lastIndex, match.index) })
+    }
+    parts.push({ type: 'think', content: match[1].trim() })
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < content.length) {
+    parts.push({ type: 'text', content: content.slice(lastIndex) })
+  }
+
+  return parts
+}
+
 function Message({ role, content, showCopy }) {
+  const parts = role === 'assistant' ? parseThinkContent(content) : [{ type: 'text', content }]
+
   return (
     <div className={`message ${role}`}>
       <div className="message-avatar">{role === 'user' ? '👤' : '🤖'}</div>
       <div className="message-wrapper">
-        <div className="message-content">
-          <ReactMarkdown>{content}</ReactMarkdown>
-        </div>
+        {parts.map((part, idx) =>
+          part.type === 'think' ? (
+            <ThinkBlock key={idx} content={part.content} />
+          ) : (
+            <div key={idx} className="message-content">
+              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{part.content}</ReactMarkdown>
+            </div>
+          )
+        )}
         {showCopy && role === 'assistant' && (
           <div className="copy-actions">
             <CopyButton content={content} isMarkdown={false} />
@@ -85,12 +132,22 @@ function Message({ role, content, showCopy }) {
 const MessageMemo = memo(Message)
 
 function StreamingMessage({ content }) {
+  const parts = parseThinkContent(content)
+
   return (
     <div className="message assistant">
       <div className="message-avatar">🤖</div>
-      <div className="message-content streaming">
-        <ReactMarkdown>{content}</ReactMarkdown>
-        <span className="cursor">▊</span>
+      <div className="message-wrapper">
+        {parts.map((part, idx) =>
+          part.type === 'think' ? (
+            <ThinkBlock key={idx} content={part.content} />
+          ) : (
+            <div key={idx} className="message-content streaming">
+              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{part.content}</ReactMarkdown>
+              <span className="cursor">▊</span>
+            </div>
+          )
+        )}
       </div>
     </div>
   )
@@ -99,12 +156,11 @@ function StreamingMessage({ content }) {
 const StreamingMessageMemo = memo(StreamingMessage)
 
 function SettingsPanel({ configs, defaultConfigId, onAdd, onUpdate, onDelete, onSetDefault, onClone }) {
-  const [editingId, setEditingId] = useState(null)
+  const [showKeys, setShowKeys] = useState({})
 
   const handleAdd = () => {
     const newConfig = createEmptyConfig()
     onAdd(newConfig)
-    setEditingId(newConfig.id)
   }
 
   const handleUpdate = (id, field, value) => {
@@ -158,13 +214,23 @@ function SettingsPanel({ configs, defaultConfigId, onAdd, onUpdate, onDelete, on
                 placeholder="API URL: https://openrouter.ai/api/v1/chat/completions"
                 className="config-input"
               />
-              <input
-                type="text"
-                value={config.key}
-                onChange={(e) => handleUpdate(config.id, 'key', e.target.value)}
-                placeholder="API Key: sk-..."
-                className="config-input"
-              />
+              <div className="config-input-group">
+                <input
+                  type={showKeys[config.id] ? 'text' : 'password'}
+                  value={config.key}
+                  onChange={(e) => handleUpdate(config.id, 'key', e.target.value)}
+                  placeholder="API Key: sk-..."
+                  className="config-input"
+                />
+                <button
+                  type="button"
+                  className="toggle-key-btn"
+                  onClick={() => setShowKeys(prev => ({ ...prev, [config.id]: !prev[config.id] }))}
+                  title={showKeys[config.id] ? '隐藏密钥' : '显示密钥'}
+                >
+                  {showKeys[config.id] ? '🙈' : '👁️'}
+                </button>
+              </div>
               <input
                 type="text"
                 value={config.model}
@@ -220,20 +286,14 @@ function App() {
   const defaultConfig = configs.find(c => c.id === defaultConfigId) || configs[0]
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.API_CONFIGS, JSON.stringify(configs))
-  }, [configs])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.DEFAULT_CONFIG_ID, defaultConfigId || '')
-  }, [defaultConfigId])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessions))
-  }, [sessions])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, currentSessionId || '')
-  }, [currentSessionId])
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEYS.API_CONFIGS, JSON.stringify(configs))
+      localStorage.setItem(STORAGE_KEYS.DEFAULT_CONFIG_ID, defaultConfigId || '')
+      localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessions))
+      localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, currentSessionId || '')
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }, [configs, defaultConfigId, sessions, currentSessionId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -311,7 +371,7 @@ function App() {
       return
     }
 
-    const userMessage = { role: 'user', content: input }
+    const userMessage = { id: Date.now().toString() + '_user', role: 'user', content: input }
     const tempSessionId = Date.now().toString()
     
     if (!currentSession) {
@@ -335,9 +395,10 @@ function App() {
     const abortController = new AbortController()
     abortControllersRef.current.set(targetSessionId, abortController)
 
+    let content = ''
     try {
       const targetSession = sessions.find(s => s.id === targetSessionId)
-      const messagesForApi = targetSession 
+      const messagesForApi = targetSession
         ? [...targetSession.messages, userMessage]
         : [userMessage]
 
@@ -357,7 +418,6 @@ function App() {
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
-      let content = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -382,13 +442,14 @@ function App() {
                     : s
                 ))
               }
-            } catch (e) {
+            } catch {
+              // Ignore JSON parse errors for incomplete SSE chunks
             }
           }
         }
       }
 
-      const assistantMessage = { role: 'assistant', content }
+      const assistantMessage = { id: Date.now().toString() + '_assistant', role: 'assistant', content }
       
       setSessions(prev => prev.map(s => 
         s.id === targetSessionId 
@@ -399,14 +460,14 @@ function App() {
       updateSessionTitle(input, targetSessionId)
     } catch (error) {
       if (error.name === 'AbortError') {
-        const assistantMessage = { role: 'assistant', content: content || '[已中断]' }
+        const assistantMessage = { id: Date.now().toString() + '_aborted', role: 'assistant', content: content || '[已中断]' }
         setSessions(prev => prev.map(s => 
           s.id === targetSessionId 
             ? { ...s, messages: [...s.messages, assistantMessage], loading: false, streamingContent: '' } 
             : s
         ))
       } else {
-        const errorMessage = { role: 'assistant', content: `错误: ${error.message}` }
+        const errorMessage = { id: Date.now().toString() + '_error', role: 'assistant', content: `错误: ${error.message}` }
         setSessions(prev => prev.map(s => 
           s.id === targetSessionId 
             ? { ...s, messages: [...s.messages, errorMessage], loading: false, streamingContent: '' } 
@@ -488,8 +549,8 @@ function App() {
         ) : currentSession ? (
           <>
             <div className="chat-messages">
-              {currentSession.messages.map((msg, idx) => (
-                <MessageMemo key={idx} role={msg.role} content={msg.content} showCopy={true} />
+              {currentSession.messages.map((msg) => (
+                <MessageMemo key={msg.id} role={msg.role} content={msg.content} showCopy={true} />
               ))}
               {currentSession.streamingContent && (
                 <StreamingMessageMemo key="streaming" content={currentSession.streamingContent} />
