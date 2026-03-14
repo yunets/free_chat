@@ -13,10 +13,10 @@ const STORAGE_KEYS = {
 function createEmptyConfig() {
   return {
     id: Date.now().toString(),
-    name: '',
+    name: 'openrouter/healer-alpha',
     url: 'https://openrouter.ai/api/v1/chat/completions',
     key: '',
-    model: 'gpt-3.5-turbo'
+    model: 'openrouter/healer-alpha'
   }
 }
 
@@ -479,6 +479,13 @@ function App() {
     abortControllersRef.current.delete(targetSessionId)
   }
 
+  const stopGeneration = useCallback((sessionId) => {
+    const controller = abortControllersRef.current.get(sessionId)
+    if (controller) {
+      controller.abort()
+    }
+  }, [])
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -564,16 +571,22 @@ function App() {
               <div ref={messagesEndRef} />
             </div>
             <div className="input-area">
-              <textarea 
+              <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="输入消息... (Enter发送, Shift+Enter换行)"
                 disabled={currentSession.loading}
               />
-              <button onClick={sendMessage} disabled={currentSession.loading || !input.trim()}>
-                {currentSession.loading ? '发送中...' : '发送'}
-              </button>
+              {currentSession.loading ? (
+                <button className="stop-btn" onClick={() => stopGeneration(currentSession.id)}>
+                  停止
+                </button>
+              ) : (
+                <button onClick={sendMessage} disabled={!input.trim()}>
+                  发送
+                </button>
+              )}
             </div>
           </>
         ) : (

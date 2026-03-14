@@ -303,6 +303,14 @@ html, body, #root {
   cursor: not-allowed;
 }
 
+.input-area .stop-btn {
+  background: #dc3545;
+}
+
+.input-area .stop-btn:hover {
+  background: #c82333;
+}
+
 .settings-panel {
   padding: 32px;
   width: 100%;
