@@ -81,6 +81,10 @@ function ThinkBlock({ content }) {
   )
 }
 
+function stripThinkContent(content) {
+  return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+}
+
 function parseThinkContent(content) {
   const thinkRegex = /<think>([\s\S]*?)<\/think>/g
   const parts = []
@@ -120,8 +124,8 @@ function Message({ role, content, showCopy }) {
         )}
         {showCopy && role === 'assistant' && (
           <div className="copy-actions">
-            <CopyButton content={content} isMarkdown={false} />
-            <CopyButton content={content} isMarkdown={true} />
+            <CopyButton content={stripThinkContent(content)} isMarkdown={false} />
+            <CopyButton content={stripThinkContent(content)} isMarkdown={true} />
           </div>
         )}
       </div>
